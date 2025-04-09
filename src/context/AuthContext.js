@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import { Alert } from "react-native";
 import auth from '@react-native-firebase/auth'
 
@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
     const registerUser = async (email, password) => {
         try {
             const userCredentials = await auth().createUserWithEmailAndPassword(email, password)
+            console.log(userCredentials)
             return userCredentials
         } catch (error) {
             throw new Error(error.code)
@@ -27,8 +28,22 @@ export const AuthProvider = ({ children }) => {
     }
 
     const logout = async () => {
-        Alert.alert('Success', `User is loggout.`)
+        try {
+            await auth().signOut()
+            Alert.alert('Success', `User is loggout.`)
+        } catch (error) {
+            throw new Error(error.code)
+        }
     }
+
+    useEffect(() => {
+        const authState = auth().onAuthStateChanged((user) => {
+            if (user) {
+                setLoggedInUser(user)
+            }
+        })
+        return authState
+    }, [])
 
     const contextData = {
         loggedInUser,

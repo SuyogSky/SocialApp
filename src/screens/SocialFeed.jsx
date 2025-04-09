@@ -1,5 +1,7 @@
 import { View, Text, FlatList, StyleSheet, Image } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
+import AddPost from '../components/AddPost'
+import AddPostForm from '../components/AddPostForm'
 
 const SocialFeed = () => {
     const posts = [
@@ -22,7 +24,10 @@ const SocialFeed = () => {
             image: 'https://images.unsplash.com/photo-1741851374430-d242e0dcd70c?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
         },
     ]
+
+      const [showAddPostForm, setShowAddPostForm] = useState(false)
     
+
     return (
         <View style={feedStyle.mainContainer}>
             <Text style={feedStyle.pageHeader}>Social App</Text>
@@ -35,11 +40,14 @@ const SocialFeed = () => {
                             <Text>{item.user}</Text>
                         </View>
                         <Text>{item.title}</Text>
-                        <Image source={{uri: item.image}} style={feedStyle.postImg} />
+                        <Image source={{ uri: item.image }} style={feedStyle.postImg} />
                     </View>
                 )}
                 contentContainerStyle={feedStyle.postListContainer}
             />
+
+            <AddPost showAddPostForm={setShowAddPostForm} />
+            <AddPostForm showAddPostForm={showAddPostForm} setShowAddPostForm={setShowAddPostForm} />
         </View>
     )
 }
