@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from "react";
 import { Alert } from "react-native";
 import auth from '@react-native-firebase/auth'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const AuthContext = createContext()
 
@@ -30,26 +31,32 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         try {
             await auth().signOut()
+            await AsyncStorage.removeItem('user')
             Alert.alert('Success', `User is loggout.`)
         } catch (error) {
             throw new Error(error.code)
         }
     }
 
-    useEffect(() => {
-        const authState = auth().onAuthStateChanged((user) => {
+    const getLoggedInUser = async () => {
+        try {
+            const user = await AsyncStorage.getItem('user');
             if (user) {
-                setLoggedInUser(user)
+                return JSON.parse(user);
             }
-        })
-        return authState
-    }, [])
+            return null;
+        } catch (error) {
+            console.error("Error getting user:", error);
+            return null;
+        }
+    };
 
     const contextData = {
         loggedInUser,
         loginUser,
         registerUser,
-        logout
+        logout,
+        getLoggedInUser,
     }
     return (
         <AuthContext.Provider value={contextData}>

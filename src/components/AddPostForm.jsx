@@ -1,12 +1,26 @@
 import { View, Text, Modal, Touchable, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native'
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { authForm } from '../styles/AuthForm'
 import { addPost } from '../firestore/posts'
+import { AuthContext } from '../context/AuthContext'
+import getFirestore from '@react-native-firebase/firestore'
 
 const AddPostForm = ({ showAddPostForm, setShowAddPostForm }) => {
     const [title, setTitle] = useState('')
     const [image, setImage] = useState('')
     const [btnLoading, setBtnLoading] = useState(false)
+    const [currentUser, setCurrentUser] = useState(null)
+    const {getLoggedInUser} = useContext(AuthContext)
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const user = await getLoggedInUser()
+            if(user){
+                setCurrentUser(user)
+            }
+        }
+        fetchUser()
+    }, [])
 
     const handleAddPost = async () => {
         setBtnLoading(true)
@@ -16,7 +30,7 @@ const AddPostForm = ({ showAddPostForm, setShowAddPostForm }) => {
         }
         else {
             try {
-                await addPost({ title, image })
+                await addPost({ title, image, user: currentUser.email, createdAt: getFirestore.FieldValue.serverTimestamp(), likes: [] })
                 Alert.alert('Success', 'Post added successfully.')
                 setImage('')
                 setTitle('')

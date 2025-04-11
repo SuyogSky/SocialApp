@@ -5,7 +5,8 @@ import RegisterScreen from './src/screens/AuthScreens/RegisterScreen'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import MainApp from './src/components/MainApp'
-import { getAuth } from '@react-native-firebase/auth'
+import auth from '@react-native-firebase/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const Stack = createNativeStackNavigator()
 
@@ -24,18 +25,45 @@ const AppStack = () => (
 
 const App = () => {
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
-    const authState = getAuth().onAuthStateChanged((user) => {
+    const checkLogin = auth().onAuthStateChanged(async (user) => {
       if (user) {
+        await AsyncStorage.setItem('user', JSON.stringify(user._user))
         setUser(user)
+      } else {
+        await AsyncStorage.removeItem('user')
+        setUser(null)
       }
+      setLoading(false)
     })
-    return authState
+    return checkLogin
   }, [])
+
+  useEffect(() => {
+    const checkUserFromStorage = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('user')
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+        }
+      } catch (error) {
+        console.error('Failed to load user from storage', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkUserFromStorage()
+  }, [])
+
+  if (loading) return null
+
   return (
     <AuthProvider>
       <NavigationContainer>
-          {user ? <AppStack /> : <AuthStack />}
+        {user ? <AppStack /> : <AuthStack />}
       </NavigationContainer>
     </AuthProvider>
   )
